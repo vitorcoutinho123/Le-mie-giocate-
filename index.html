@@ -1,196 +1,625 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Le Mie Giocate</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Le Mie Giocate</title>
 
-<style>
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: Arial, sans-serif;
-}
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-body {
-  background: #f4f6f8;
-  color: #17202a;
-}
+  <style>
+    * { box-sizing: border-box; }
 
-header {
-  background: #111827;
-  color: white;
-  padding: 22px 18px;
-  text-align: center;
-}
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      color: #17202a;
+    }
 
-header h1 {
-  font-size: 26px;
-}
+    header {
+      background: #111827;
+      color: white;
+      padding: 22px;
+      text-align: center;
+    }
 
-header p {
-  margin-top: 7px;
-  color: #cbd5e1;
-}
+    header h1 {
+      margin: 0;
+      font-size: 28px;
+    }
 
-.container {
-  max-width: 600px;
-  margin: auto;
-  padding: 18px;
-}
+    header p {
+      margin: 8px 0 0;
+      opacity: .8;
+    }
 
-.card {
-  background: white;
-  border-radius: 16px;
-  padding: 18px;
-  margin-bottom: 15px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.07);
-}
+    .container {
+      max-width: 700px;
+      margin: auto;
+      padding: 20px;
+    }
 
-.stats {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-}
+    .card {
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 18px;
+      box-shadow: 0 3px 12px rgba(0,0,0,.08);
+    }
 
-.stat {
-  text-align: center;
-}
+    input, textarea, select {
+      width: 100%;
+      padding: 12px;
+      margin: 7px 0 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 15px;
+    }
 
-.stat strong {
-  display: block;
-  font-size: 25px;
-  margin-top: 5px;
-}
+    button {
+      width: 100%;
+      padding: 13px;
+      border: 0;
+      border-radius: 9px;
+      background: #111827;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
 
-.green {
-  color: #16a34a;
-}
+    button:hover {
+      opacity: .9;
+    }
 
-.red {
-  color: #dc2626;
-}
+    .secondary {
+      background: #6b7280;
+      margin-top: 8px;
+    }
 
-.button {
-  display: block;
-  width: 100%;
-  border: none;
-  border-radius: 12px;
-  padding: 14px;
-  margin-top: 12px;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-  background: #111827;
-  color: white;
-}
+    .pick {
+      border-left: 5px solid #111827;
+      padding: 15px;
+      margin: 12px 0;
+      background: #f9fafb;
+      border-radius: 8px;
+    }
 
-.pick {
-  border-left: 5px solid #111827;
-}
+    .locked {
+      text-align: center;
+      padding: 30px 15px;
+    }
 
-.pick h3 {
-  margin-bottom: 8px;
-}
+    .hidden {
+      display: none;
+    }
 
-.pick p {
-  margin: 5px 0;
-}
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
 
-.locked {
-  text-align: center;
-  padding: 25px 10px;
-}
+    .stat {
+      background: #f3f4f6;
+      padding: 15px;
+      border-radius: 10px;
+      text-align: center;
+    }
 
-.locked .lock {
-  font-size: 42px;
-  margin-bottom: 10px;
-}
+    .stat strong {
+      display: block;
+      font-size: 24px;
+      margin-top: 5px;
+    }
 
-footer {
-  text-align: center;
-  padding: 25px;
-  color: #6b7280;
-  font-size: 13px;
-}
-</style>
+    .error {
+      color: #b91c1c;
+      margin-top: 10px;
+    }
+
+    .success {
+      color: #15803d;
+      margin-top: 10px;
+    }
+  </style>
 </head>
 
 <body>
 
 <header>
   <h1>⚽ LE MIE GIOCATE</h1>
-  <p>Pronostici, analisi e risultati del calcio</p>
+  <p>Pronostici, analisi e risultati delle partite di calcio</p>
 </header>
 
 <div class="container">
 
-  <div class="card">
-    <h2>Benvenuto</h2>
-    <p style="margin-top:8px;">
-      Le mie giocate e le mie analisi calcistiche.
-    </p>
+  <!-- LOGIN -->
+  <div class="card" id="loginBox">
+    <h2>Accedi</h2>
+
+    <input id="email" type="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Password">
+
+    <button onclick="login()">Accedi</button>
+    <button class="secondary" onclick="register()">Registrati</button>
+
+    <div id="authMessage"></div>
   </div>
 
-  <div class="card stats">
-    <div class="stat">
-      Giocate
-      <strong>0</strong>
+  <!-- AREA UTENTE -->
+  <div id="userArea" class="hidden">
+
+    <div class="card">
+      <h2>Benvenuto 👋</h2>
+      <p id="userEmail"></p>
+
+      <button onclick="logout()">Esci</button>
     </div>
 
-    <div class="stat">
-      Vinte
-      <strong class="green">0</strong>
+    <div class="card">
+      <h2>📊 Le mie statistiche</h2>
+
+      <div class="stats">
+        <div class="stat">
+          Giocate
+          <strong id="totale">0</strong>
+        </div>
+
+        <div class="stat">
+          Vinte
+          <strong id="vinte">0</strong>
+        </div>
+
+        <div class="stat">
+          Perse
+          <strong id="perse">0</strong>
+        </div>
+
+        <div class="stat">
+          In corso
+          <strong id="incorso">0</strong>
+        </div>
+      </div>
     </div>
 
-    <div class="stat">
-      Perse
-      <strong class="red">0</strong>
-    </div>
+    <!-- ABBONAMENTO -->
+    <div class="card">
+      <h2>🔒 Area abbonati</h2>
 
-    <div class="stat">
-      In corso
-      <strong>0</strong>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>🔒 Area riservata</h2>
-
-    <div class="locked">
-      <div class="lock">🔐</div>
-
-      <h3>Contenuti riservati agli abbonati</h3>
-
-      <p style="margin-top:8px;">
-        Abbonati per vedere le mie giocate,
-        gli approfondimenti e le analisi.
+      <p>
+        Per vedere le mie giocate è necessario l'abbonamento.
       </p>
 
-      <button class="button" onclick="abbonati()">
-        ABBONATI — €29,99 / 6 MESI
+      <h2>29,99 € / 6 mesi</h2>
+
+      <button onclick="alert('Pagamento in fase di configurazione')">
+        Abbonati
       </button>
     </div>
-  </div>
 
-  <div class="card">
-    <h2>📊 Le mie statistiche</h2>
+    <!-- GIOCATE -->
+    <div class="card">
+      <h2>🎯 Le mie giocate</h2>
 
-    <p style="margin-top:10px;">Profitto totale: <b>€0,00</b></p>
-    <p style="margin-top:7px;">ROI: <b>0%</b></p>
+      <div id="picks">
+        Caricamento...
+      </div>
+    </div>
+
+    <!-- ADMIN -->
+    <div class="card hidden" id="adminArea">
+
+      <h2>🔐 Area amministratore</h2>
+
+      <input id="partita" placeholder="Partita">
+      <input id="campionato" placeholder="Campionato">
+      <input id="pronostico" placeholder="Pronostico">
+      <input id="quota" type="number" step="0.01" placeholder="Quota">
+      <input id="stake" type="number" step="0.01" placeholder="Stake">
+      <input id="dataPartita" type="datetime-local">
+
+      <textarea id="analisi" rows="5"
+        placeholder="Analisi / commento"></textarea>
+
+      <button onclick="pubblicaGiocata()">
+        Pubblica giocata
+      </button>
+
+      <div id="adminMessage"></div>
+    </div>
+
   </div>
 
 </div>
 
-<footer>
-  © 2026 Le Mie Giocate
-</footer>
-
 <script>
-function abbonati() {
-  alert("Area abbonamento: €29,99 per 6 mesi.");
-}
+
+  // ==============================
+  // SUPABASE
+  // ==============================
+
+  const SUPABASE_URL =
+    "https://pxcxpugscvuwjgopjbub.supabase.co";
+
+  const SUPABASE_PUBLISHABLE_KEY =
+    "sb_publishable_N1eUdVhpZjlSvvBjgjOGmQ_sdKlYo3N";
+
+  const supabaseClient =
+    supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_PUBLISHABLE_KEY
+    );
+
+
+  // ==============================
+  // ADMIN
+  // ==============================
+
+  // SOSTITUIRE CON LA TUA EMAIL
+  const ADMIN_EMAIL = "vitorcoutinh@gmail.com";
+
+
+  // ==============================
+  // REGISTRAZIONE
+  // ==============================
+
+  async function register() {
+
+    const email =
+      document.getElementById("email").value.trim();
+
+    const password =
+      document.getElementById("password").value;
+
+    const message =
+      document.getElementById("authMessage");
+
+    if (!email || !password) {
+      message.innerHTML =
+        '<div class="error">Inserisci email e password.</div>';
+      return;
+    }
+
+    const { error } =
+      await supabaseClient.auth.signUp({
+        email: email,
+        password: password
+      });
+
+    if (error) {
+
+      message.innerHTML =
+        '<div class="error">' +
+        error.message +
+        '</div>';
+
+      return;
+    }
+
+    message.innerHTML =
+      '<div class="success">' +
+      'Registrazione effettuata. Controlla la tua email se viene richiesta la conferma.' +
+      '</div>';
+  }
+
+
+  // ==============================
+  // LOGIN
+  // ==============================
+
+  async function login() {
+
+    const email =
+      document.getElementById("email").value.trim();
+
+    const password =
+      document.getElementById("password").value;
+
+    const message =
+      document.getElementById("authMessage");
+
+    const { error } =
+      await supabaseClient.auth.signInWithPassword({
+        email: email,
+        password: password
+      });
+
+    if (error) {
+
+      message.innerHTML =
+        '<div class="error">' +
+        error.message +
+        '</div>';
+
+      return;
+    }
+
+    await mostraAreaUtente();
+  }
+
+
+  // ==============================
+  // LOGOUT
+  // ==============================
+
+  async function logout() {
+
+    await supabaseClient.auth.signOut();
+
+    document
+      .getElementById("userArea")
+      .classList.add("hidden");
+
+    document
+      .getElementById("loginBox")
+      .classList.remove("hidden");
+  }
+
+
+  // ==============================
+  // AREA UTENTE
+  // ==============================
+
+  async function mostraAreaUtente() {
+
+    const {
+      data: { user }
+    } = await supabaseClient.auth.getUser();
+
+    if (!user) return;
+
+    document
+      .getElementById("loginBox")
+      .classList.add("hidden");
+
+    document
+      .getElementById("userArea")
+      .classList.remove("hidden");
+
+    document
+      .getElementById("userEmail")
+      .textContent = user.email;
+
+    if (user.email === ADMIN_EMAIL) {
+
+      document
+        .getElementById("adminArea")
+        .classList.remove("hidden");
+    }
+
+    await caricaGiocate();
+  }
+
+
+  // ==============================
+  // CARICA GIOCATE
+  // ==============================
+
+  async function caricaGiocate() {
+
+    const {
+      data,
+      error
+    } = await supabaseClient
+      .from("giocate")
+      .select("*")
+      .order("created_at", {
+        ascending: false
+      });
+
+    const container =
+      document.getElementById("picks");
+
+    if (error) {
+
+      container.innerHTML =
+        '<div class="error">' +
+        error.message +
+        '</div>';
+
+      return;
+    }
+
+    document.getElementById("totale")
+      .textContent = data.length;
+
+    document.getElementById("vinte")
+      .textContent =
+        data.filter(x => x.risultato === "Vinta").length;
+
+    document.getElementById("perse")
+      .textContent =
+        data.filter(x => x.risultato === "Persa").length;
+
+    document.getElementById("incorso")
+      .textContent =
+        data.filter(x => x.risultato === "In corso").length;
+
+
+    if (data.length === 0) {
+
+      container.innerHTML =
+        "<p>Nessuna giocata pubblicata.</p>";
+
+      return;
+    }
+
+
+    container.innerHTML = data.map(g => `
+
+      <div class="pick">
+
+        <h3>${escapeHtml(g.partita)}</h3>
+
+        <strong>
+          ${escapeHtml(g.pronostico)}
+        </strong>
+
+        <p>
+          Campionato:
+          ${escapeHtml(g.campionato || "-")}
+        </p>
+
+        <p>
+          Quota:
+          ${g.quota ?? "-"}
+        </p>
+
+        <p>
+          Risultato:
+          ${escapeHtml(g.risultato || "In corso")}
+        </p>
+
+        ${
+          g.analisi
+            ? `<p>${escapeHtml(g.analisi)}</p>`
+            : ""
+        }
+
+      </div>
+
+    `).join("");
+  }
+
+
+  // ==============================
+  // PUBBLICA GIOCATA
+  // ==============================
+
+  async function pubblicaGiocata() {
+
+    const {
+      data: { user }
+    } = await supabaseClient.auth.getUser();
+
+    if (!user || user.email !== ADMIN_EMAIL) {
+
+      alert("Non sei autorizzato.");
+      return;
+    }
+
+    const partita =
+      document.getElementById("partita").value;
+
+    const campionato =
+      document.getElementById("campionato").value;
+
+    const pronostico =
+      document.getElementById("pronostico").value;
+
+    const quota =
+      document.getElementById("quota").value;
+
+    const stake =
+      document.getElementById("stake").value;
+
+    const dataPartita =
+      document.getElementById("dataPartita").value;
+
+    const analisi =
+      document.getElementById("analisi").value;
+
+
+    const { error } =
+      await supabaseClient
+        .from("giocate")
+        .insert({
+
+          partita,
+          campionato,
+          pronostico,
+          quota: quota || null,
+          stake: stake || null,
+          data_partita: dataPartita || null,
+          analisi
+
+        });
+
+
+    const message =
+      document.getElementById("adminMessage");
+
+
+    if (error) {
+
+      message.innerHTML =
+        '<div class="error">' +
+        error.message +
+        '</div>';
+
+      return;
+    }
+
+
+    message.innerHTML =
+      '<div class="success">' +
+      "Giocata pubblicata!" +
+      "</div>";
+
+
+    document
+      .getElementById("partita")
+      .value = "";
+
+    document
+      .getElementById("campionato")
+      .value = "";
+
+    document
+      .getElementById("pronostico")
+      .value = "";
+
+    document
+      .getElementById("quota")
+      .value = "";
+
+    document
+      .getElementById("stake")
+      .value = "";
+
+    document
+      .getElementById("dataPartita")
+      .value = "";
+
+    document
+      .getElementById("analisi")
+      .value = "";
+
+
+    await caricaGiocate();
+  }
+
+
+  // ==============================
+  // SICUREZZA HTML
+  // ==============================
+
+  function escapeHtml(value) {
+
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+
+  // ==============================
+  // SESSIONE AUTOMATICA
+  // ==============================
+
+  supabaseClient.auth
+    .getSession()
+    .then(({ data }) => {
+
+      if (data.session) {
+        mostraAreaUtente();
+      }
+
+    });
+
 </script>
 
 </body>
