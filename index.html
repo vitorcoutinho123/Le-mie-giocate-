@@ -620,6 +620,45 @@
 
     });
 
+// ==============================
+// PAGAMENTO ABBONAMENTO STRIPE
+// ==============================
+
+window.abbonati = async function () {
+  try {
+    const {
+      data: { session },
+      error: sessionError
+    } = await supabaseClient.auth.getSession();
+
+    if (sessionError || !session) {
+      alert("Accedi prima di abbonarti.");
+      return;
+    }
+
+    const { data, error } =
+      await supabaseClient.functions.invoke("create-checkout", {
+        method: "POST"
+      });
+
+    if (error) {
+      console.error("Errore pagamento:", error);
+      alert("Non riesco ad avviare il pagamento. Riprova.");
+      return;
+    }
+
+    if (!data || !data.url) {
+      alert("Non è stato ricevuto il link di pagamento.");
+      return;
+    }
+
+    window.location.href = data.url;
+
+  } catch (error) {
+    console.error("Errore:", error);
+    alert("Si è verificato un errore. Riprova.");
+  }
+};
 </script>
 
 </body>
