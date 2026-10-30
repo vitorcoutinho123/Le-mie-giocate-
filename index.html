@@ -418,35 +418,6 @@
   if (abbonamentoAttivo) {
     await caricaGiocate();
   }
-}
-
-    const {
-      data: { user }
-    } = await supabaseClient.auth.getUser();
-
-    if (!user) return;
-
-    document
-      .getElementById("loginBox")
-      .classList.add("hidden");
-
-    document
-      .getElementById("userArea")
-      .classList.remove("hidden");
-
-    document
-      .getElementById("userEmail")
-      .textContent = user.email;
-
-    if (user.email === ADMIN_EMAIL) {
-
-      document
-        .getElementById("adminArea")
-        .classList.remove("hidden");
-    }
-
-    await caricaGiocate();
-  }
 
 
   // ==============================
