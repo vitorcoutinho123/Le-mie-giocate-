@@ -400,33 +400,6 @@
         .limit(1)
         .maybeSingle();
 
-    if (error) {
-      console.error("Errore controllo abbonamento:", error);
-      alert("Errore nel controllo dell'abbonamento. Riprova.");
-      return;
-    }
-
-    abbonamentoAttivo = !!subscription;
-  }
-
-  document.getElementById("subscriptionArea")
-    .classList.toggle("hidden", abbonamentoAttivo);
-
-  document.getElementById("picksArea")
-    .classList.toggle("hidden", !abbonamentoAttivo);
-
-    if (abbonamentoAttivo) {
-    await caricaGiocate();
-  }
-}
-
-
-  // ==============================
-  // CARICA GIOCATE
-  // ==============================
-
-  async function caricaGiocate() {
-
     const {
       data,
       error
