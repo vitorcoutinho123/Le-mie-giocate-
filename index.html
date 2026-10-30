@@ -363,6 +363,63 @@
 
   async function mostraAreaUtente() {
 
+  const {
+    data: { user }
+  } = await supabaseClient.auth.getUser();
+
+  if (!user) return;
+
+  document.getElementById("loginBox")
+    .classList.add("hidden");
+
+  document.getElementById("userArea")
+    .classList.remove("hidden");
+
+  document.getElementById("userEmail")
+    .textContent = user.email;
+
+  const isAdmin = user.email === ADMIN_EMAIL;
+
+  if (isAdmin) {
+    document.getElementById("adminArea")
+      .classList.remove("hidden");
+  }
+
+  let abbonamentoAttivo = isAdmin;
+
+  if (!isAdmin) {
+
+    const { data: subscription, error } =
+      await supabaseClient
+        .from("subscriptions")
+        .select("id, status, expires_at")
+        .eq("user_id", user.id)
+        .eq("status", "active")
+        .gt("expires_at", new Date().toISOString())
+        .order("expires_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+    if (error) {
+      console.error("Errore controllo abbonamento:", error);
+      alert("Errore nel controllo dell'abbonamento. Riprova.");
+      return;
+    }
+
+    abbonamentoAttivo = !!subscription;
+  }
+
+  document.getElementById("subscriptionArea")
+    .classList.toggle("hidden", abbonamentoAttivo);
+
+  document.getElementById("picksArea")
+    .classList.toggle("hidden", !abbonamentoAttivo);
+
+  if (abbonamentoAttivo) {
+    await caricaGiocate();
+  }
+}
+
     const {
       data: { user }
     } = await supabaseClient.auth.getUser();
